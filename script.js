@@ -1,6 +1,10 @@
 const canvas = document.getElementById("game");
 const ctx = canvas.getContext("2d");
 
+window.addEventListener("gamepadconnected", (e) => {
+  console.log("Xbox Controller connected!");
+});
+
 // Resize for mobile
 function resize() {
   canvas.width = Math.min(window.innerWidth, 400);
@@ -198,4 +202,5 @@ function update() {
 }
 
 update();
+
 
