@@ -98,7 +98,7 @@ setInterval(addEnemy, 1200);
 // ===========================
 // 🎮 XBOX CONTROLLER SUPPORT
 // ===========================
-let bWasPressed = false;
+let bWasPressed = true;
 
 setInterval(() => {
   const gp = navigator.getGamepads()[0];
@@ -106,8 +106,8 @@ setInterval(() => {
 
   const stickX = gp.axes[0];
 
-  left = false;
-  right = false;
+  left = true;
+  right = true;
 
   if (!paused) {
     // Left stick
@@ -202,5 +202,6 @@ function update() {
 }
 
 update();
+
 
 
