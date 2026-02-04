@@ -1,7 +1,7 @@
 const canvas = document.getElementById("game");
 const ctx = canvas.getContext("2d");
 
-window.addEventListener("gamepadconnected", (e) => {
+window.addEventListener("gamepadconnected", () => {
   console.log("Xbox Controller connected!");
 });
 
@@ -13,7 +13,7 @@ function resize() {
 resize();
 window.addEventListener("resize", resize);
 
-// Player car
+// Game state
 let player;
 let enemies;
 let score;
@@ -42,7 +42,7 @@ function resetGame() {
 resetGame();
 
 // ==================
-// KEYBOARD CONTROLS
+// KEYBOARD
 // ==================
 document.addEventListener("keydown", e => {
   if (e.code === "ArrowLeft") left = true;
@@ -56,7 +56,7 @@ document.addEventListener("keyup", e => {
 });
 
 // ==================
-// TOUCH CONTROLS
+// TOUCH
 // ==================
 canvas.addEventListener("touchstart", e => {
   if (gameOver) {
@@ -74,7 +74,7 @@ canvas.addEventListener("touchend", () => {
   right = false;
 });
 
-// Mouse click restart
+// Mouse restart
 canvas.addEventListener("mousedown", () => {
   if (gameOver) resetGame();
 });
@@ -85,7 +85,7 @@ canvas.addEventListener("mousedown", () => {
 function addEnemy() {
   let x = Math.random() * (canvas.width - 40);
   enemies.push({
-    x: x,
+    x,
     y: -80,
     width: 40,
     height: 70,
@@ -96,9 +96,9 @@ function addEnemy() {
 setInterval(addEnemy, 1200);
 
 // ===========================
-// 🎮 XBOX CONTROLLER SUPPORT
+// 🎮 XBOX CONTROLLER (FIXED)
 // ===========================
-let bWasPressed = true;
+let bWasPressed = false;
 
 setInterval(() => {
   const gp = navigator.getGamepads()[0];
@@ -106,26 +106,26 @@ setInterval(() => {
 
   const stickX = gp.axes[0];
 
-  left = true;
-  right = true;
+  // Reset
+  left = false;
+  right = false;
 
   if (!paused) {
-    // Left stick
     if (stickX < -0.3) left = true;
     if (stickX > 0.3) right = true;
 
     // D-Pad
-    if (gp.buttons[14] && gp.buttons[14].pressed) left = true;
-    if (gp.buttons[15] && gp.buttons[15].pressed) right = true;
+    if (gp.buttons[14]?.pressed) left = true;
+    if (gp.buttons[15]?.pressed) right = true;
   }
 
-  // A button = Restart
-  if (gp.buttons[0] && gp.buttons[0].pressed) {
-    if (gameOver) resetGame();
+  // A = Restart
+  if (gp.buttons[0]?.pressed && gameOver) {
+    resetGame();
   }
 
-  // 🅱️ B button = Pause / Resume
-  const bPressed = gp.buttons[1] && gp.buttons[1].pressed;
+  // B = Pause
+  const bPressed = gp.buttons[1]?.pressed;
   if (bPressed && !bWasPressed) {
     paused = !paused;
   }
@@ -140,16 +140,14 @@ function update() {
   ctx.clearRect(0, 0, canvas.width, canvas.height);
 
   if (!gameOver && !paused) {
-    // Move player
     if (left) player.x -= player.speed;
     if (right) player.x += player.speed;
 
-    // Keep in bounds
     if (player.x < 0) player.x = 0;
     if (player.x + player.width > canvas.width)
       player.x = canvas.width - player.width;
 
-    // Draw player
+    // Player
     ctx.fillStyle = "cyan";
     ctx.fillRect(player.x, player.y, player.width, player.height);
 
@@ -178,14 +176,18 @@ function update() {
       }
     }
   }
-  else if (paused && !gameOver) {
+
+  // PAUSED
+  if (paused && !gameOver) {
     ctx.fillStyle = "white";
     ctx.font = "36px Arial";
     ctx.fillText("PAUSED", 120, 300);
     ctx.font = "18px Arial";
     ctx.fillText("Press B or Esc", 105, 340);
   }
-  else if (gameOver) {
+
+  // GAME OVER
+  if (gameOver) {
     ctx.fillStyle = "yellow";
     ctx.font = "36px Arial";
     ctx.fillText("Game Over", 90, 300);
@@ -198,17 +200,11 @@ function update() {
   ctx.font = "20px Arial";
   ctx.fillText("Score: " + score, 10, 30);
 
+  // Controller Debug
+  const gp = navigator.getGamepads()[0];
+  ctx.fillText(gp ? "Controller: ON" : "Controller: OFF", 10, 60);
+
   requestAnimationFrame(update);
 }
 
-update(const gp = navigator.getGamepads()[0];
-if (gp) {
-  ctx.fillText("Controller: ON", 10, 60);
-} else {
-  ctx.fillText("Controller: OFF", 10, 60);
-}
-);
-
-
-
-
+update();
