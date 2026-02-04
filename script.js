@@ -14,6 +14,7 @@ let player;
 let enemies;
 let score;
 let gameOver;
+let paused = false;
 
 // Controls
 let left = false;
@@ -31,14 +32,18 @@ function resetGame() {
   enemies = [];
   score = 0;
   gameOver = false;
+  paused = false;
 }
 
 resetGame();
 
-// Keyboard
+// ==================
+// KEYBOARD CONTROLS
+// ==================
 document.addEventListener("keydown", e => {
   if (e.code === "ArrowLeft") left = true;
   if (e.code === "ArrowRight") right = true;
+  if (e.code === "Escape") paused = !paused;
 });
 
 document.addEventListener("keyup", e => {
@@ -46,7 +51,9 @@ document.addEventListener("keyup", e => {
   if (e.code === "ArrowRight") right = false;
 });
 
-// Touch controls + Restart
+// ==================
+// TOUCH CONTROLS
+// ==================
 canvas.addEventListener("touchstart", e => {
   if (gameOver) {
     resetGame();
@@ -63,12 +70,14 @@ canvas.addEventListener("touchend", () => {
   right = false;
 });
 
-// Mouse click restart (for PC)
+// Mouse click restart
 canvas.addEventListener("mousedown", () => {
   if (gameOver) resetGame();
 });
 
-// Enemy cars
+// ==================
+// ENEMIES
+// ==================
 function addEnemy() {
   let x = Math.random() * (canvas.width - 40);
   enemies.push({
@@ -82,11 +91,51 @@ function addEnemy() {
 
 setInterval(addEnemy, 1200);
 
-// Game loop
+// ===========================
+// 🎮 XBOX CONTROLLER SUPPORT
+// ===========================
+let bWasPressed = false;
+
+setInterval(() => {
+  const gp = navigator.getGamepads()[0];
+  if (!gp) return;
+
+  const stickX = gp.axes[0];
+
+  left = false;
+  right = false;
+
+  if (!paused) {
+    // Left stick
+    if (stickX < -0.3) left = true;
+    if (stickX > 0.3) right = true;
+
+    // D-Pad
+    if (gp.buttons[14] && gp.buttons[14].pressed) left = true;
+    if (gp.buttons[15] && gp.buttons[15].pressed) right = true;
+  }
+
+  // A button = Restart
+  if (gp.buttons[0] && gp.buttons[0].pressed) {
+    if (gameOver) resetGame();
+  }
+
+  // 🅱️ B button = Pause / Resume
+  const bPressed = gp.buttons[1] && gp.buttons[1].pressed;
+  if (bPressed && !bWasPressed) {
+    paused = !paused;
+  }
+  bWasPressed = bPressed;
+
+}, 100);
+
+// ==================
+// GAME LOOP
+// ==================
 function update() {
   ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-  if (!gameOver) {
+  if (!gameOver && !paused) {
     // Move player
     if (left) player.x -= player.speed;
     if (right) player.x += player.speed;
@@ -117,19 +166,27 @@ function update() {
         gameOver = true;
       }
 
-      // Passed enemy = score
+      // Score
       if (e.y > canvas.height) {
         score++;
         e.y = -100;
         e.x = Math.random() * (canvas.width - 40);
       }
     }
-  } else {
+  }
+  else if (paused && !gameOver) {
+    ctx.fillStyle = "white";
+    ctx.font = "36px Arial";
+    ctx.fillText("PAUSED", 120, 300);
+    ctx.font = "18px Arial";
+    ctx.fillText("Press B or Esc", 105, 340);
+  }
+  else if (gameOver) {
     ctx.fillStyle = "yellow";
     ctx.font = "36px Arial";
     ctx.fillText("Game Over", 90, 300);
     ctx.font = "18px Arial";
-    ctx.fillText("Tap to Restart", 115, 340);
+    ctx.fillText("Tap / A to Restart", 90, 340);
   }
 
   // Score
@@ -141,3 +198,4 @@ function update() {
 }
 
 update();
+
