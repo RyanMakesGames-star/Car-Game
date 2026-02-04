@@ -201,7 +201,14 @@ function update() {
   requestAnimationFrame(update);
 }
 
-update();
+update(const gp = navigator.getGamepads()[0];
+if (gp) {
+  ctx.fillText("Controller: ON", 10, 60);
+} else {
+  ctx.fillText("Controller: OFF", 10, 60);
+}
+);
+
 
 
 
